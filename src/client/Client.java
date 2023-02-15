@@ -6,6 +6,10 @@ import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -40,6 +44,7 @@ public class Client extends JFrame {
 	private JTextField usernameField;
 	private JTextField messageInput;
 	private ImagePanel logo;
+	private CardLayout mainCard;
 	private JList userList;
 
 	public static void main(String[] args) {
@@ -64,14 +69,25 @@ public class Client extends JFrame {
 		mainPanel.setBorder(null);
 
 		setContentPane(mainPanel);
-		mainPanel.setLayout(new CardLayout(0, 0));
+		mainCard = new CardLayout();
+		mainPanel.setLayout(mainCard);
 		
 		JPanel joinPanel = new JPanel();
 		joinPanel.setBackground(new Color(255, 235, 0));
-		mainPanel.add(joinPanel, "name_352646027400");
+		mainPanel.add(joinPanel, "joinPanel");
 		joinPanel.setLayout(null);
 		
 		JButton btnNewButton = new JButton("join");
+		btnNewButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+//				JsonObject joinUser = new JsonObject();
+//				joinUser.addProperty("usernameAndEmail", usernameField.getText());
+				
+				mainCard.show(mainPanel, "chatListPanel");
+				
+			}
+		});
 		btnNewButton.setForeground(new Color(254, 229, 0));
 		btnNewButton.setBackground(new Color(254, 229, 0));
 		btnNewButton.setIcon(new ImageIcon("C:\\hyunsu\\hyunsu\\workspace\\TestProject1\\Image\\k_join_btn.png"));
@@ -93,16 +109,23 @@ public class Client extends JFrame {
 		usernameField.setColumns(10);
 		
 		JPanel chatListPanel = new JPanel();
-		mainPanel.add(chatListPanel, "name_352657145600");
+		mainPanel.add(chatListPanel, "chatListPanel");
 		chatListPanel.setLayout(null);
 		
 		JPanel smallLogoPanel1 = new JPanel();
-		smallLogoPanel1.setBounds(0, 0, 111, 122);
+		smallLogoPanel1.setBounds(0, 0, 111, 111);
 		logo = new ImagePanel(new ImageIcon("C:/hyunsu/hyunsu/workspace/TestProject1/image/kakao_logo.png").getImage());
 		chatListPanel.add(smallLogoPanel1);
+		smallLogoPanel1.setLayout(null);
 		
 		JButton plusButton = new JButton("+");
-		plusButton.setBounds(0, 121, 111, 67);
+		plusButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				mainCard.show(mainPanel, "chatRoomPanel");
+			}
+		});
+		plusButton.setBounds(0, 140, 111, 111);
 		chatListPanel.add(plusButton);
 		
 		JScrollPane userListScroll = new JScrollPane();
@@ -113,40 +136,58 @@ public class Client extends JFrame {
 		userList.setBounds(109, 0, 355, 761);
 		chatListPanel.add(userList);
 		
-		JPanel chattingPanel = new JPanel();
-		mainPanel.add(chattingPanel);
-		chattingPanel.setLayout(null);
+		JPanel chatRoomPanel = new JPanel();
+		mainPanel.add(chatRoomPanel,"chatRoomPanel");
+		chatRoomPanel.setLayout(null);
 		
 		JPanel smallLogoPanel2 = new JPanel();
 		smallLogoPanel2.setBounds(0, 0, 70, 70);
-		chattingPanel.add(smallLogoPanel2);
+		chatRoomPanel.add(smallLogoPanel2);
+		smallLogoPanel2.setLayout(null);
 		
 		JLabel lblNewLabel = new JLabel("New label");
 		lblNewLabel.setBounds(70, 0, 288, 70);
-		chattingPanel.add(lblNewLabel);
+		chatRoomPanel.add(lblNewLabel);
 		
 		JButton exitButton = new JButton("exit");
+		exitButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				
+				mainCard.show(mainPanel, "chatListPanel");
+			}
+		});
 		exitButton.setBounds(355, 0, 109, 70);
-		chattingPanel.add(exitButton);
+		chatRoomPanel.add(exitButton);
 		
-		JScrollPane talkScroll = new JScrollPane();
-		talkScroll.setBounds(0, 68, 464, 605);
-		chattingPanel.add(talkScroll);
+		JScrollPane chatScroll = new JScrollPane();
+		chatScroll.setBounds(0, 68, 464, 605);
+		chatRoomPanel.add(chatScroll);
 		
-		JTextArea talkArea = new JTextArea();
-		talkScroll.setViewportView(talkArea);
+		JTextArea chatArea = new JTextArea();
+		chatScroll.setViewportView(chatArea);
 		
 		JScrollPane sendScroll = new JScrollPane();
 		sendScroll.setBounds(0, 673, 358, 88);
-		chattingPanel.add(sendScroll);
+		chatRoomPanel.add(sendScroll);
 		
 		messageInput = new JTextField();
+		messageInput.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+			}
+		});
 		sendScroll.setViewportView(messageInput);
 		messageInput.setColumns(10);
 		
-		JButton sendButton = new JButton("New button");
+		JButton sendButton = new JButton("send");
+		sendButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+			}
+		});
 		sendButton.setBounds(355, 673, 109, 88);
-		chattingPanel.add(sendButton);
+		chatRoomPanel.add(sendButton);
 		
 
 	}
