@@ -309,19 +309,16 @@ public class Client extends JFrame {
 		messageInput = new JTextField();
 		messageInput.addKeyListener(new KeyAdapter() {
 			@Override
-			public void keyPressed(KeyEvent e) {
-				if(e.getKeyCode() == KeyEvent.VK_ENTER) {
-//					sendMessage();
-					try {
-						chatArea.insert(username + ": " + messageInput.getText() + "\n", 
-								chatArea.getLineStartOffset(0));
-					} catch (BadLocationException e1) {
-						e1.printStackTrace();
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
-				}
-			}
+			 public void keyPressed(KeyEvent e) {
+		        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+		            try {
+		                chatArea.append(username + ": " + messageInput.getText() + "\n"); // append 메서드 사용
+		            } catch (Exception e1) {
+		                e1.printStackTrace();
+		            }
+		            messageInput.setText("");
+		        }
+		    }
 		});
 		sendScroll.setViewportView(messageInput);
 		messageInput.setColumns(10);
