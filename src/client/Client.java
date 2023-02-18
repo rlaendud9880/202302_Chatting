@@ -233,7 +233,7 @@ public class Client extends JFrame {
 				String chatInput = JOptionPane.showInputDialog("방의 제목을 입력하시오.");
 				roomListModel.addElement(chatInput);
 				roomTitleLabel.setText(chatInput);
-				mainCard.show(mainPanel, "chatRoomPanel");
+//				mainCard.show(mainPanel, "chatRoomPanel"); // 바로 방으로 접속
 			}
 		});
 		plusButton.setBounds(0, 140, 111, 111);
@@ -245,11 +245,14 @@ public class Client extends JFrame {
 
 		userList = new JList<String>();
 		userList.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-
-				mainCard.show(mainPanel, "chatRoomPanel");
-			}
+		    @Override
+		    public void mouseClicked(MouseEvent e) {
+		        int selectedRoomIndex = userList.getSelectedIndex();
+		        if (selectedRoomIndex >= 0 && selectedRoomIndex < roomListModel.getSize()) {
+		            roomTitleLabel.setText(roomListModel.getElementAt(selectedRoomIndex));
+		            mainCard.show(mainPanel, "chatRoomPanel");
+		        }
+		    }
 		});
 		userList.setBounds(109, 0, 355, 761);
 		chatListPanel.add(userList);
