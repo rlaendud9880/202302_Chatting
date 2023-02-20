@@ -47,7 +47,7 @@ public class ClientRecive extends Thread{
 						break;
 					case "sendMessage":
 						MessageRespDto messageRespDto = gson.fromJson(responseDto.getBody(), MessageRespDto.class);
-//						Client.getInstance().getContentView().append(messageRespDto.getMessageValue() + "\n");
+						Client.getInstance().getChatArea().append(messageRespDto.getMessageValue() + "\n");
 						break;
 					case "plus":
 						RoomRespDto roomRespDto = gson.fromJson(responseDto.getBody(), RoomRespDto.class);

@@ -307,11 +307,7 @@ public class Client extends JFrame {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					try {
-						chatArea.append(username + ": " + messageInput.getText() + "\n"); // append 메서드 사용
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
+					sendMessage();
 					messageInput.setText("");
 				}
 			}
@@ -323,11 +319,7 @@ public class Client extends JFrame {
 		sendButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				try {
-					chatArea.append(username + ": " + messageInput.getText() + "\n"); // append 메서드 사용
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
+				sendMessage();
 				messageInput.setText("");
 			}
 		});
