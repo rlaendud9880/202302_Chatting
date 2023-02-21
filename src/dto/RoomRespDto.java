@@ -8,7 +8,8 @@ import lombok.Data;
 @AllArgsConstructor
 @Data
 public class RoomRespDto {
-//	private String welcomeMessage;
+	private String createRoomMessage;
 	private List<String> createdRoomList;
+	private List<String> kingUsersList;
 
 }

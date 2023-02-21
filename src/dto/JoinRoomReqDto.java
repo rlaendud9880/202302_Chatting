@@ -5,7 +5,7 @@ import lombok.Data;
 
 @AllArgsConstructor
 @Data
-public class RoomReqDto {
-	private String roomName;
-	private String kingUser;
+public class JoinRoomReqDto {
+	private String roomname;
+	private String username;
 }

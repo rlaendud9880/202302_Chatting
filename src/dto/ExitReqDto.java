@@ -7,4 +7,5 @@ import lombok.Data;
 @Data
 public class ExitReqDto {
 	private String username;
+	private String roomname;
 }
