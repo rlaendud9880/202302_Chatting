@@ -122,6 +122,9 @@ public class Client extends JFrame {
 						socket = new Socket(ip, port); // #1 생성이되면
 						isConnected = true;
 
+						ClientRecive clientRecive = new ClientRecive(socket);
+						clientRecive.start();
+
 						username = usernameField.getText();
 						JoinReqDto joinReqDto = new JoinReqDto(username);
 						String joinRequestDtoJson = gson.toJson(joinReqDto);
@@ -132,8 +135,6 @@ public class Client extends JFrame {
 								JOptionPane.INFORMATION_MESSAGE);
 
 
-						ClientRecive clientRecive = new ClientRecive(socket);
-						clientRecive.start();
 
 
 						OutputStream outputStream = socket.getOutputStream();
@@ -216,32 +217,34 @@ public class Client extends JFrame {
 		userList.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-//				int selectedRoomIndex = userList.getSelectedIndex();
-//				if (selectedRoomIndex >= 0 && selectedRoomIndex < roomListModel.getSize()) {
-//					roomTitleLabel.setText(roomListModel.getElementAt(selectedRoomIndex));
-//					mainCard.show(mainPanel, "chatRoomPanel");
-//				}
+////				int selectedRoomIndex = userList.getSelectedIndex();
+////				if (selectedRoomIndex >= 0 && selectedRoomIndex < roomListModel.getSize()) {
+////					roomTitleLabel.setText(roomListModel.getElementAt(selectedRoomIndex));
+////					mainCard.show(mainPanel, "chatRoomPanel");
+////				}
+//				
+				
 				if(e.getClickCount() == 2) {
 					System.out.println("클릭완료");
-					roomname = userList.getSelectedIndex() == 0 ? null : userList.getSelectedValue();
+					roomname = userList.getSelectedIndex() == 0 ? "all" : userList.getSelectedValue();
 					joineduser = username;
 					System.out.println(roomname + ","+ joineduser);
 					
-					JoinRoomReqDto joinRoomReqDto =
-							new JoinRoomReqDto(roomname, joineduser);
+					JoinRoomReqDto joinRoomReqDto = new JoinRoomReqDto(roomname, joineduser);
 					
 					OutputStream outputStream;
 					
 					try {
 						
-						chattingRoom(roomname);
 						
+						chattingRoom(roomname);
 							
 						outputStream = socket.getOutputStream();
 						PrintWriter out = new PrintWriter(outputStream, true);
 						
 						RequestDto requsetDto = new RequestDto("joinRoom", gson.toJson(joinRoomReqDto));
 						out.println(gson.toJson(requsetDto));
+						System.out.println(gson.toJson(requsetDto));
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
@@ -264,6 +267,9 @@ public class Client extends JFrame {
 			public void mouseClicked(MouseEvent e) {
 				try {
 					
+					ClientRecive clientRecive = new ClientRecive(socket);
+					clientRecive.start();
+
 					roomname = JOptionPane.showInputDialog(null, "방 이름을 입력하세요", 
 								"이름 입력", JOptionPane.INFORMATION_MESSAGE);
 					
@@ -274,8 +280,6 @@ public class Client extends JFrame {
 					
 					chattingRoom(roomname);
 
-					ClientRecive clientRecive = new ClientRecive(socket);
-					clientRecive.start();
 
 					OutputStream outputStream = socket.getOutputStream();
 					PrintWriter out = new PrintWriter(outputStream,true);
@@ -307,7 +311,6 @@ public class Client extends JFrame {
 
 			chatArea = new JTextArea();
 			chatScroll.setViewportView(chatArea);
-			chatArea.setEditable(false);
 
 			JPanel columnHeader = new JPanel();
 			chatScroll.setColumnHeaderView(columnHeader);
@@ -397,7 +400,7 @@ public class Client extends JFrame {
 
 	private void sendMessage() {
 		if (!messageInput.getText().isBlank()) {
-			String toRoom = userList.getSelectedIndex() != 0 ? null : userList.getSelectedValue();
+			String toRoom = userList.getSelectedIndex() == 0 ? "all" : userList.getSelectedValue();
 			String message = messageInput.getText();
 			MessageReqDto messageReqDto = new MessageReqDto(toRoom, username, message);
 			sendRequest("sendMessage", gson.toJson(messageReqDto));

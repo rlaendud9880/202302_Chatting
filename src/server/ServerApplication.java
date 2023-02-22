@@ -28,30 +28,33 @@ import dto.ResponseDto;
 import dto.RoomReqDto;
 import dto.RoomRespDto;
 import lombok.Data;
+import lombok.Getter;
 
 
-@Data
+@Getter
  class ConnectedSocket extends Thread {
-	private static List<ConnectedSocket> socketList = new ArrayList<>();
 	private Socket socket;
 	private InputStream inputStream;
 	private OutputStream outputStream;
 	private Gson gson;
-	
+
 	private String username;
 	private String roomname;
 	private String kinguser;
 	private String joineduser;
-	private static List<String> roomList = new ArrayList<>();
-	private static List<String> kingUsers = new ArrayList<>();
-	private static List<String> connectedUsers = new ArrayList<>();
 	
+	private static List<ConnectedSocket> socketList = new ArrayList<>();
+	private static List<String> kingUsers = new ArrayList<>();
+	private static List<Room> roomList = new ArrayList<>();
+	private static List<String> connectedRooms = new ArrayList<>();
+
 	public ConnectedSocket(Socket socket) {
 		this.socket = socket;
 		gson = new Gson();
 		socketList.add(this);
-		
 	}
+	
+	
 	
 	public void run() {
 		try {
@@ -65,58 +68,55 @@ import lombok.Data;
 				RequestDto requestDto = gson.fromJson(request, RequestDto.class);
 				System.out.println(request);
 				switch (requestDto.getResource()) {
+				
 					case "join": 
 						JoinReqDto joinReqDto =gson.fromJson(requestDto.getBody(), JoinReqDto.class);
 						username = joinReqDto.getUsername(); // 항상 Json형태로 날라옴
+						List<String> connectedUsers = new ArrayList<>();
 						
 						for(ConnectedSocket connectedSocket : socketList) {
 							connectedUsers.add(connectedSocket.getUsername());
 							createdRooms.add(connectedSocket.getRoomname());
 						}
 						
-						createdRoomsSetName = new LinkedHashSet<>(createdRooms);
-						createdRooms.clear();
-						roomList.addAll(createdRoomsSetName);
-						
-						System.out.println(roomList);
-						
 						JoinRespDto joinRespDto = new JoinRespDto(username + "님이 접속하였습니다.", connectedUsers); 
 						sendToAll(requestDto.getResource(),"ok", gson.toJson(joinRespDto));
-						System.out.println("joinRespDto: " + joinRespDto);
-						
 						break;
 						
 					case "sendMessage":
 						MessageReqDto messageReqDto = gson.fromJson(requestDto.getBody(), MessageReqDto.class);
 						String message = messageReqDto.getFromUser() + ": " + messageReqDto.getMessageValue();
 						MessageRespDto messageRespDto = new MessageRespDto(message);
-						messageToRoom(requestDto.getResource(),"ok",gson.toJson(messageRespDto), messageReqDto.getRoomName());
-						System.out.println("messageReqDto: "+message);
+						sendToAll(requestDto.getResource(),"ok",gson.toJson(messageRespDto));
+						
 						break;
 						
 					case "plus":
 						RoomReqDto roomReqDto = gson.fromJson(requestDto.getBody(), RoomReqDto.class);
-						roomname = roomReqDto.getRoomName();
-						
-						for(ConnectedSocket connectedSocket : socketList) {
-							createdRooms.add(connectedSocket.getUsername());
-							System.out.println(createdRooms);
-						}
-						createdRoomsSetName = new LinkedHashSet<>(createdRooms);
-						createdRooms.clear();
-						
-						roomList.addAll(createdRoomsSetName);
-						System.out.println(roomList);
 						
 						kinguser = roomReqDto.getKingUser();
-						System.out.println(kinguser);
+						roomname = roomReqDto.getRoomName();
+						Room room = new Room(kinguser,roomname);
+						roomList.add(room);
+//						connectedRooms.add(roomname);
+						
+						for(Room rooms : roomList) {
+							if(rooms.getRoomname().equals(roomname) || rooms.getRoomname().isBlank()) {
+								rooms.addRoomList(this.socket);
+							}
+						}
+						
+						
 						
 						for(ConnectedSocket connectedSocket : socketList) {
 							kingUsers.add(connectedSocket.getUsername());
+							connectedRooms.add(connectedSocket.getRoomname());
 						}
-						RoomRespDto roomRespDto = new RoomRespDto(roomname + "생성됨", createdRooms, kingUsers); 
+						System.out.println(roomList);
+						System.out.println(connectedRooms);
+
+						RoomRespDto roomRespDto = new RoomRespDto(createdRooms); 
 						sendToAll(requestDto.getResource(),"ok", gson.toJson(roomRespDto));
-						System.out.println("roomRespDto:" + roomRespDto);
 						break;
 						
 					case "joinRoom":
@@ -125,13 +125,21 @@ import lombok.Data;
 						roomname = joinRoomReqDto.getRoomname();
 						joineduser = joinRoomReqDto.getUsername();
 						
-						List<String> roomConnectedUsers = new ArrayList<>();
-						for(ConnectedSocket connectedSocket : socketList) {
-							roomConnectedUsers.add(connectedSocket.joineduser);
+						JoinRoomRespDto joinRoomRespDto = new JoinRoomRespDto(joineduser + "님이 접속하였습니다.", roomname);
+						ResponseDto respDto = new ResponseDto(requestDto.getResource(), "ok", gson.toJson(joinRoomRespDto));
+						
+						for(Room rooms : roomList) {
+							if(rooms.getRoomname().equals(roomname)|| rooms.getRoomname().isBlank()) {
+								rooms.addRoomList(this.socket);
+								rooms.broadcast(respDto);
+							}
 						}
-						JoinRoomRespDto joinRoomRespDto = new JoinRoomRespDto(joineduser + "님이 접속하였습니다.", roomConnectedUsers);
-						messageToRoom(requestDto.getResource(), "ok", gson.toJson(joinRoomRespDto), roomname);
-						System.out.println("joinRoomRespDto:" + joinRoomRespDto);
+						
+						
+						System.out.println(requestDto.getResource());
+						System.out.println(gson.toJson(joinRoomRespDto));
+						System.out.println(roomname);
+						sendToAll(requestDto.getResource(), "ok", gson.toJson(joinRoomRespDto));
 						break;
 						
 					case "exit":
@@ -145,7 +153,6 @@ import lombok.Data;
 						
 						ExitRespDto exitRespDto = new ExitRespDto(username + "님이 퇴장하였습니다.", unconnectedUsers); 
 						sendToAll(requestDto.getResource(),"ok", gson.toJson(exitRespDto));
-						System.out.println("exitRespDto:" + exitRespDto);
 						break;
 				}
 			}
@@ -168,8 +175,7 @@ import lombok.Data;
 	
 	private void messageToRoom(String resource, String status, String body, String roomname) throws IOException {
 		ResponseDto responseDto = new ResponseDto(resource, status, body);
-		
-//		connectedUsers.add(roomname);
+//		11
 		for(ConnectedSocket connectedSocket : socketList) {
 			if(connectedSocket.getRoomname().equals(roomname)) {
 				OutputStream outputStream = connectedSocket.getSocket().getOutputStream();
@@ -187,6 +193,8 @@ import lombok.Data;
 public class ServerApplication {
 	
 	public static void main(String[] args) {
+		
+		
 		ServerSocket serverSocket = null; 
 		try {
 			serverSocket = new ServerSocket(9090);
