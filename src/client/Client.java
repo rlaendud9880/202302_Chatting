@@ -47,9 +47,8 @@ public class Client extends JFrame {
 	private ImagePanel logo;
 	private JTextField usernameField;
 	private JTextField messageInput;
-	private JTextArea chatArea;
 	private CardLayout mainCard;
-	
+	private JTextArea chatArea = new JTextArea();
 	private JList<String> userList;
 	private DefaultListModel<String> roomListModel;
 	private JLabel roomTitleLabel;
@@ -77,7 +76,7 @@ public class Client extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Client frame = new Client();
+					Client frame = Client.getInstance();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -86,7 +85,7 @@ public class Client extends JFrame {
 		});
 	}
 
-	public Client() {
+	private Client() {
 
 		gson = new Gson();
 
@@ -126,16 +125,11 @@ public class Client extends JFrame {
 						clientRecive.start();
 
 						username = usernameField.getText();
-						JoinReqDto joinReqDto = new JoinReqDto(username);
-						String joinRequestDtoJson = gson.toJson(joinReqDto);
-						RequestDto requestDto = new RequestDto("join", joinRequestDtoJson);
+						RequestDto requestDto = new RequestDto("join", username);
 						String requsetDtoJson = gson.toJson(requestDto);
 
 						JOptionPane.showMessageDialog(null, username + "서버 접속", "접속성공",
 								JOptionPane.INFORMATION_MESSAGE);
-
-
-
 
 						OutputStream outputStream = socket.getOutputStream();
 						PrintWriter out = new PrintWriter(outputStream, true);
@@ -226,7 +220,7 @@ public class Client extends JFrame {
 				
 				if(e.getClickCount() == 2) {
 					System.out.println("클릭완료");
-					roomname = userList.getSelectedIndex() == 0 ? "all" : userList.getSelectedValue();
+					roomname = userList.getSelectedIndex() == 0 ? null : userList.getSelectedValue();
 					joineduser = username;
 					System.out.println(roomname + ","+ joineduser);
 					
@@ -273,9 +267,7 @@ public class Client extends JFrame {
 					roomname = JOptionPane.showInputDialog(null, "방 이름을 입력하세요", 
 								"이름 입력", JOptionPane.INFORMATION_MESSAGE);
 					
-					RoomReqDto roomReqDto = new RoomReqDto(roomname, username);
-					String roomReqDtoJson =	gson.toJson(roomReqDto);
-					RequestDto requestDto = new RequestDto("plus", roomReqDtoJson);
+					RequestDto requestDto = new RequestDto("plus", roomname);
 					String requsetDtoJson = gson.toJson(requestDto);
 					
 					chattingRoom(roomname);
@@ -299,7 +291,7 @@ public class Client extends JFrame {
 		plusPanel.setLayout(null);
 	}
 	
-	private void chattingRoom(String roomname) {
+	public void chattingRoom(String roomname) {
 	
 			JPanel chatRoomPanel = new JPanel();
 			mainPanel.add(chatRoomPanel, "chatRoomPanel");
@@ -309,9 +301,16 @@ public class Client extends JFrame {
 			chatScroll.setBounds(0, 0, 464, 673);
 			chatRoomPanel.add(chatScroll);
 
+			
+			// ChatRoom 생성자에서
 			chatArea = new JTextArea();
+			// 이전에 초기화 코드를 실행하는 대신에 아래와 같이 직접 설정
+			chatArea.setEditable(false);
+			chatArea.setLineWrap(true);
+			chatArea.setWrapStyleWord(true);
 			chatScroll.setViewportView(chatArea);
 
+			
 			JPanel columnHeader = new JPanel();
 			chatScroll.setColumnHeaderView(columnHeader);
 			BorderLayout bl_columnHeader = new BorderLayout();
@@ -362,6 +361,7 @@ public class Client extends JFrame {
 				@Override
 				public void keyPressed(KeyEvent e) {
 					if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+						
 						sendMessage();
 					}
 				}
@@ -400,9 +400,10 @@ public class Client extends JFrame {
 
 	private void sendMessage() {
 		if (!messageInput.getText().isBlank()) {
-			String toRoom = userList.getSelectedIndex() == 0 ? "all" : userList.getSelectedValue();
+//			String toRoom = userList.getSelectedIndex() != 0 ? "all" : userList.getSelectedValue();
 			String message = messageInput.getText();
-			MessageReqDto messageReqDto = new MessageReqDto(toRoom, username, message);
+			
+			MessageReqDto messageReqDto = new MessageReqDto(roomname, username, message);
 			sendRequest("sendMessage", gson.toJson(messageReqDto));
 			messageInput.setText("");
 		}
