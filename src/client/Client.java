@@ -211,19 +211,11 @@ public class Client extends JFrame {
 		userList.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-////				int selectedRoomIndex = userList.getSelectedIndex();
-////				if (selectedRoomIndex >= 0 && selectedRoomIndex < roomListModel.getSize()) {
-////					roomTitleLabel.setText(roomListModel.getElementAt(selectedRoomIndex));
-////					mainCard.show(mainPanel, "chatRoomPanel");
-////				}
-//				
-				
 				if(e.getClickCount() == 2) {
 					System.out.println("클릭완료");
 					roomname = userList.getSelectedIndex() == 0 ? null : userList.getSelectedValue();
 					joineduser = username;
-					System.out.println(roomname + ","+ joineduser);
-					
+//					System.out.println(roomname + ","+ joineduser);
 					JoinRoomReqDto joinRoomReqDto = new JoinRoomReqDto(roomname, joineduser);
 					
 					OutputStream outputStream;
@@ -272,12 +264,10 @@ public class Client extends JFrame {
 					
 					chattingRoom(roomname);
 
-
 					OutputStream outputStream = socket.getOutputStream();
 					PrintWriter out = new PrintWriter(outputStream,true);
 					
 					out.println(requsetDtoJson);
-					
 					
 				} catch (IOException e1) {
 					e1.printStackTrace();
@@ -302,9 +292,7 @@ public class Client extends JFrame {
 			chatRoomPanel.add(chatScroll);
 
 			
-			// ChatRoom 생성자에서
 			chatArea = new JTextArea();
-			// 이전에 초기화 코드를 실행하는 대신에 아래와 같이 직접 설정
 			chatArea.setEditable(false);
 			chatArea.setLineWrap(true);
 			chatArea.setWrapStyleWord(true);
@@ -327,9 +315,11 @@ public class Client extends JFrame {
 					public void mouseClicked(MouseEvent e) {
 						
 					try {
-						ExitReqDto exitReqDto = new ExitReqDto(username,roomname);
-						String exitReqDtoJson = gson.toJson(exitReqDto);
-						RequestDto requestDto = new RequestDto("exit", exitReqDtoJson);
+						
+						ClientRecive clientRecive = new ClientRecive(socket);
+						clientRecive.start();
+
+						RequestDto requestDto = new RequestDto("exit", roomname);
 						String reqestToJson = gson.toJson(requestDto);
 						
 						OutputStream outputStream = socket.getOutputStream();

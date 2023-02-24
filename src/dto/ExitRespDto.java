@@ -9,5 +9,6 @@ import lombok.Data;
 @Data
 public class ExitRespDto {
 	private String exitMessage;
-	private List<String> connectedUsers;
+	private List<String> unconnectedUsers;
+	private List<String> exitRooms;
 }

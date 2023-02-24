@@ -66,13 +66,13 @@ public class ConnectedSocket extends Thread {
 						
 					case "sendMessage":
 						MessageReqDto messageReqDto = gson.fromJson(requestDto.getBody(), MessageReqDto.class);
-						String message = messageReqDto.getFromUser() + "> " + messageReqDto.getMessageValue();
 						
-						
-						MessageRespDto messageRespDto = new MessageRespDto(message);
-						ResponseDto responseDto = new ResponseDto("sendMessage", "ok", gson.toJson(messageRespDto));
-						sendToRoom(responseDto, socketList);
-
+						if(!messageReqDto.getToUser().equalsIgnoreCase(room.getRoomname())) {
+							String message = messageReqDto.getFromUser() + "> " + messageReqDto.getMessageValue();
+							MessageRespDto messageRespDto = new MessageRespDto(message);
+							ResponseDto responseDto = new ResponseDto("sendMessage", "ok", gson.toJson(messageRespDto));
+							sendToRoom(responseDto, socketList);
+						} 
 //						System.out.println(messageReqDto);
 						
 						// roomname을 가져오는것
@@ -100,6 +100,9 @@ public class ConnectedSocket extends Thread {
 						List<String> joinUser = new ArrayList<>();
 						room.getUsers().add(this);
 						joinUser.add(joinRoomReqDto.getUsername());
+						
+						String joinMessage = username + "님이 퇴장하셨습니다.";
+						
 						ResponseDto joinResponseDto = new ResponseDto("joinSuccess", "ok", room.getRoomname());
 //						System.out.println(joinResponseDto);
 						sendToMe(joinResponseDto);
@@ -109,13 +112,16 @@ public class ConnectedSocket extends Thread {
 						break;
 						
 					case "exit":
-						ExitReqDto exitReqDto = gson.fromJson(requestDto.getBody(), ExitReqDto.class);
-						username = exitReqDto.getUsername(); // 항상 Json형태로 날라옴
-						List<String> unconnectedUsers = new ArrayList<>();
 						
-					
+						username = requestDto.getBody(); // 항상 Json형태로 날라옴
 						
-						ExitRespDto exitRespDto = new ExitRespDto(username + "님이 퇴장하였습니다.", unconnectedUsers); 
+						ResponseDto exitRsponseDto = new ResponseDto("exitSuccess", "ok", username);
+						room.getUsers().remove(this);
+						roomList.remove(room);
+						String exitMessage = username + "님이 퇴장하셨습니다.";
+//						MessageRespDto messageRespDto2 = 
+						reflashRoomList();
+						
 //						sendToAll(requestDto.getResource(),"ok", gson.toJson(exitRespDto));
 						break;
 				}
@@ -167,5 +173,15 @@ public class ConnectedSocket extends Thread {
 		
 		}
 	}
-	
+	private void broadcastMessage(String message1, Room room) {
+	    MessageRespDto messageRespDto = new MessageRespDto(message1);
+	    ResponseDto responseDto = new ResponseDto("sendMessage", "ok", gson.toJson(messageRespDto));
+	    try {
+	        for (ConnectedSocket user : room.getUsers()) {
+	            user.sendToMe(responseDto);
+	        }
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	}
 }

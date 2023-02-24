@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.google.gson.Gson;
 
+import dto.ExitRespDto;
 import dto.JoinRespDto;
 import dto.JoinRoomRespDto;
 import dto.MessageRespDto;
@@ -62,7 +63,7 @@ public class ClientRecive extends Thread{
 						MessageRespDto messageRespDto = gson.fromJson(responseDto.getBody(), MessageRespDto.class);
 						Client.getInstance().getMainCard().show(Client.getInstance().getMainPanel(), "chatRoomPanel");
 						Client.getInstance().getChatArea().append(messageRespDto.getMessageValue() + "\n");
-						System.out.println(messageRespDto);
+//						System.out.println(messageRespDto);
 						break;
 					case "exitSuccess":
 						break;
