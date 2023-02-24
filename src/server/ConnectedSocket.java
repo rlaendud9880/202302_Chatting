@@ -51,11 +51,11 @@ public class ConnectedSocket extends Thread {
 			inputStream = socket.getInputStream();
 			BufferedReader in = new BufferedReader(new InputStreamReader(inputStream)); 
 			List<String> createdRooms = new ArrayList<>();
-			
+			Room room;
 			while(true) {
 				String request = in.readLine();	// requestDto(Json형태로 받음)
 				RequestDto requestDto = gson.fromJson(request, RequestDto.class);
-				System.out.println(request);
+				room = new Room(username,requestDto.getBody());
 				switch (requestDto.getResource()) {
 				
 					case "join": 
@@ -66,42 +66,46 @@ public class ConnectedSocket extends Thread {
 						
 					case "sendMessage":
 						MessageReqDto messageReqDto = gson.fromJson(requestDto.getBody(), MessageReqDto.class);
-						String message = messageReqDto.getFromUser() + ": " + messageReqDto.getMessageValue();
+						String message = messageReqDto.getFromUser() + "> " + messageReqDto.getMessageValue();
+						
+						
 						MessageRespDto messageRespDto = new MessageRespDto(message);
-//						sendToAll(requestDto.getResource(),"ok",gson.toJson(messageRespDto));
+						ResponseDto responseDto = new ResponseDto("sendMessage", "ok", gson.toJson(messageRespDto));
+						sendToRoom(responseDto, socketList);
+
+//						System.out.println(messageReqDto);
+						
+						// roomname을 가져오는것
+						// 메시지
 						
 						break;
 						
 					case "plus":
-						Room room = new Room(username,requestDto.getBody());
+						room = new Room(username,requestDto.getBody());
 						room.getUsers().add(this);
-						
 						roomList.add(room);
 						
-//						RoomRespDto roomRespDto = new RoomRespDto("입장", kingUsers, createdRooms); 
-						ResponseDto responseDto = new ResponseDto("plusSuccess", "ok", room.getRoomname());
-						
-						sendToMe(responseDto);
+						ResponseDto responseDto1 = new ResponseDto("plusSuccess", "ok", room.getRoomname());
+//						System.out.println(responseDto);
+						sendToMe(responseDto1);
 						
 						reflashRoomList();
 						break;
 						
 					case "joinRoom":
+						
+						// 방에 참여를 하였을 때, 무엇을 할 것인가?
+						// 방의 이름, users를 가져오기
 						JoinRoomReqDto joinRoomReqDto = gson.fromJson(requestDto.getBody(), JoinRoomReqDto.class);
+						List<String> joinUser = new ArrayList<>();
+						room.getUsers().add(this);
+						joinUser.add(joinRoomReqDto.getUsername());
+						ResponseDto joinResponseDto = new ResponseDto("joinSuccess", "ok", room.getRoomname());
+//						System.out.println(joinResponseDto);
+						sendToMe(joinResponseDto);
 						
-//						JoinRoomRespDto joinRoomRespDto = new JoinRoomRespDto(joineduser + "님이 접속하였습니다.", roomname);
-//						ResponseDto respDto = new ResponseDto(requestDto.getResource(), "ok", gson.toJson(joinRoomRespDto));
+						reflashRoomList();
 						
-//						for(Room rooms : roomList) {
-//							if(rooms.getRoomname().equals(roomname)|| rooms.getRoomname().isBlank()) {
-//								rooms.addRoomList(this.socket);
-//								rooms.broadcast(respDto);
-//							}
-//						}
-						
-						
-//						sendToRoom();
-//						sendToAll(requestDto.getResource(), "ok", gson.toJson(joinRoomRespDto));
 						break;
 						
 					case "exit":
@@ -154,7 +158,7 @@ public class ConnectedSocket extends Thread {
 		
 		}
 	}
-	private void sendToRoom(ResponseDto responseDto, List<ConnectedSocket> socketList) throws IOException {
+	private void sendToRoom(ResponseDto responseDto,List<ConnectedSocket> socketList) throws IOException {
 		for(ConnectedSocket connectedSocket : socketList) {
 			OutputStream outputStream = connectedSocket.getSocket().getOutputStream();
 			PrintWriter out = new PrintWriter(outputStream, true);

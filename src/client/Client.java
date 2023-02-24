@@ -400,10 +400,9 @@ public class Client extends JFrame {
 
 	private void sendMessage() {
 		if (!messageInput.getText().isBlank()) {
-//			String toRoom = userList.getSelectedIndex() != 0 ? "all" : userList.getSelectedValue();
+			String toUser = userList.getSelectedIndex() == 0 ? roomname : userList.getSelectedValue();
 			String message = messageInput.getText();
-			
-			MessageReqDto messageReqDto = new MessageReqDto(roomname, username, message);
+			MessageReqDto messageReqDto = new MessageReqDto(toUser, username, message);
 			sendRequest("sendMessage", gson.toJson(messageReqDto));
 			messageInput.setText("");
 		}
